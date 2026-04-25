@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 /* RCC and GPIO Registers */
 #define RCC_BASE 0x40021000
@@ -58,6 +59,9 @@ int main(void)
             : "=r"(apsr)
             : "r"(a), "r"(b)
             : "cc");
+
+        printf("Compare: %d and %d\n", a, b);
+        printf("APSR = 0x%08lX\n", (unsigned long)apsr);
 
         /* N flag (bit 31) */
         if (apsr & (1 << 31))

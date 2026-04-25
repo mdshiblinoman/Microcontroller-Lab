@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 /* RCC and GPIO Registers */
 #define RCC_BASE 0x40021000
@@ -43,6 +44,7 @@ int main(void)
     GPIOC_CRH |= (0x2 << 20);
 
     uint32_t apsr;
+    int32_t result;
 
     int a = 20;
     int b = 5;
@@ -51,6 +53,7 @@ int main(void)
     {
         if (b == 0)
         {
+            printf("Division by zero is not allowed.\n");
             blink(10); // error indication
             continue;
         }
@@ -59,11 +62,16 @@ int main(void)
             "MOV R0, %1      \n"
             "MOV R1, %2      \n"
             "SDIV R2, R0, R1 \n" // division
+            "MOV %0, R2      \n"
             "CMP R2, #0      \n" // 👈 flags update (VERY IMPORTANT)
-            "MRS %0, APSR    \n"
-            : "=r"(apsr)
+            "MRS %1, APSR    \n"
+            : "=r"(result), "=r"(apsr)
             : "r"(a), "r"(b)
             : "r0", "r1", "r2", "cc");
+
+        printf("Division: %d / %d\n", a, b);
+        printf("Quotient = %ld\n", (long)result);
+        printf("Remainder = %ld\n", (long)(a - (result * b)));
 
         /* N flag (Negative) */
         if (apsr & (1 << 31))

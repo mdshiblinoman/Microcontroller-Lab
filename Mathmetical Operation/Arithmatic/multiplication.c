@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 /* RCC and GPIO Registers */
 #define RCC_BASE 0x40021000
@@ -43,6 +44,7 @@ int main(void)
     GPIOC_CRH |= (1 << 21);
 
     uint32_t apsr;
+    int32_t result;
 
     /* User input variables */
     int a = 5;
@@ -54,10 +56,13 @@ int main(void)
             "MOV R0, %1      \n"
             "MOV R1, %2      \n"
             "MULS R2, R0, R1 \n"
-            "MRS %0, APSR    \n"
-            : "=r"(apsr)
+            "MOV %0, R2      \n"
+            "MRS %1, APSR    \n"
+            : "=r"(result), "=r"(apsr)
             : "r"(a), "r"(b)
-            : "cc");
+            : "r0", "r1", "r2", "cc");
+
+        printf("Multiplication: %d * %d = %ld\n", a, b, (long)result);
 
         /* N flag (bit 31) */
         if (apsr & (1 << 31))
