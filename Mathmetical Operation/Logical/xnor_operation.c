@@ -45,16 +45,17 @@ int main(void)
     uint32_t apsr;
 
     /* User input variables */
-    int a = 20;
-    int b = 10;
+    int a = 23;
+    int b = 45;
 
     while (1)
     {
         __asm volatile(
-            "MOV R0, %1   \n"
-            "MOV R1, %2   \n"
-            "CMP R0, R1   \n"
-            "MRS %0, APSR \n"
+            "MOV R0, %1      \n"
+            "MOV R1, %2      \n"
+            "EOR R2, R0, R1  \n"
+            "MVNS R2, R2     \n"
+            "MRS %0, APSR    \n"
             : "=r"(apsr)
             : "r"(a), "r"(b)
             : "cc");

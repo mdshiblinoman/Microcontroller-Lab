@@ -1,22 +1,84 @@
 #include <stdint.h>
-#include <stdio.h>
+
+/* RCC and GPIO Registers */
+#define RCC_BASE 0x40021000
+#define RCC_APB2ENR (*(volatile unsigned int *)(RCC_BASE + 0x18))
+
+#define GPIOC_BASE 0x40011000
+#define GPIOC_CRH (*(volatile unsigned int *)(GPIOC_BASE + 0x04))
+#define GPIOC_BSRR (*(volatile unsigned int *)(GPIOC_BASE + 0x10))
+#define GPIOC_BRR (*(volatile unsigned int *)(GPIOC_BASE + 0x14))
+
+/* Delay */
+void delay(void)
+{
+    for (volatile int i = 0; i < 300000; i++)
+        ;
+}
+
+/* LED ON/OFF */
+void led_on() { GPIOC_BRR = (1 << 13); }
+void led_off() { GPIOC_BSRR = (1 << 13); }
+
+/* Blink function */
+void blink(int times)
+{
+    for (int i = 0; i < times; i++)
+    {
+        led_on();
+        delay();
+        led_off();
+        delay();
+    }
+    delay(); // gap between flags
+}
 
 int main(void)
 {
-    /* Fixed decimal inputs: change these values as needed. */
-    uint32_t a = 23;
-    uint32_t b = 45;
-    uint32_t result;
+    /* Enable GPIOC clock */
+    RCC_APB2ENR |= (1 << 4);
 
-    __asm volatile(
-        "AND %0, %1, %2\n"
-        : "=r"(result)
-        : "r"(a), "r"(b)
-        : "cc");
+    /* Configure PC13 as output */
+    GPIOC_CRH &= ~(0x00F00000);
+    GPIOC_CRH |= (1 << 21);
 
-    printf("A      = %lu\n", (unsigned long)a);
-    printf("B      = %lu\n", (unsigned long)b);
-    printf("A & B  = %lu\n", (unsigned long)result);
+    uint32_t apsr;
 
-    return 0;
+    /* User input variables */
+    int a = 23;
+    int b = 45;
+
+    while (1)
+    {
+        __asm volatile(
+            "MOV R0, %1      \n"
+            "MOV R1, %2      \n"
+            "ANDS R2, R0, R1 \n"
+            "MRS %0, APSR    \n"
+            : "=r"(apsr)
+            : "r"(a), "r"(b)
+            : "cc");
+
+        /* N flag (bit 31) */
+        if (apsr & (1 << 31))
+            blink(1);
+
+        /* Z flag (bit 30) */
+        if (apsr & (1 << 30))
+            blink(2);
+
+        /* C flag (bit 29) */
+        if (apsr & (1 << 29))
+            blink(3);
+
+        /* V flag (bit 28) */
+        if (apsr & (1 << 28))
+            blink(4);
+
+        /* Q flag (bit 27) */
+        if (apsr & (1 << 27))
+            blink(5);
+
+        delay();
+    }
 }
