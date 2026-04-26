@@ -54,14 +54,14 @@ int main(void)
     while (1)
     {
         __asm volatile(
-            "MOV R0, %1      \n"
-            "MOV R1, %2      \n"
-            "SUBS R2, R0, R1 \n"
-            "MOV %0, R2      \n"
-            "MRS %1, APSR    \n"
-            : "=r"(result), "=r"(apsr)
-            : "r"(a), "r"(b)
-            : "r0", "r1", "r2", "cc");
+            "MOV R0, %1      \n"       // Load a into R0
+            "MOV R1, %2      \n"       // Load b into R1
+            "SUBS R2, R0, R1 \n"       // R2 = R0 - R1, updates flags
+            "MOV %0, R2      \n"       // Store result back to C variable
+            "MRS %1, APSR    \n"       // Store APSR flags back to C variable
+            : "=r"(result), "=r"(apsr) // Output operands
+            : "r"(a), "r"(b)           // Input operands
+            : "r0", "r1", "r2", "cc"); // Clobbered registers and condition codes
 
         printf("Subtraction: %d - %d = %ld\n", a, b, (long)result);
 

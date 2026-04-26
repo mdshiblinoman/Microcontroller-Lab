@@ -60,15 +60,15 @@ int main(void)
         }
 
         __asm volatile(
-            "MOV R0, %1      \n"
-            "MOV R1, %2      \n"
-            "SDIV R2, R0, R1 \n" // division
-            "MOV %0, R2      \n"
-            "CMP R2, #0      \n" // 👈 flags update (VERY IMPORTANT)
-            "MRS %1, APSR    \n"
-            : "=r"(result), "=r"(apsr)
-            : "r"(a), "r"(b)
-            : "r0", "r1", "r2", "cc");
+            "MOV R0, %1      \n"       // Load a into R0
+            "MOV R1, %2      \n"       // Load b into R1
+            "SDIV R2, R0, R1 \n"       // R2 = R0 / R1 (signed division), updates flags
+            "MOV %0, R2      \n"       // Store quotient back to C variable
+            "CMP R2, #0      \n"       // Check if quotient is negative (N flag) or zero (Z flag)
+            "MRS %1, APSR    \n"       // Store APSR flags back to C variable
+            : "=r"(result), "=r"(apsr) // Output operands
+            : "r"(a), "r"(b)           // Input operands
+            : "r0", "r1", "r2", "cc"); // Clobbered registers and condition codes
 
         printf("Division: %d / %d\n", a, b);
         printf("Quotient = %ld\n", (long)result);
