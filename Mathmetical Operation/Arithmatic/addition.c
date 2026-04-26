@@ -28,6 +28,7 @@ void blink(int times)
     {
         led_on();
         delay();
+
         led_off();
         delay();
     }
@@ -40,8 +41,8 @@ int main(void)
     RCC_APB2ENR |= (1 << 4);
 
     /* Configure PC13 as output */
-    GPIOC_CRH &= ~(0x00F00000);
-    GPIOC_CRH |= (1 << 21);
+    GPIOC_CRH &= ~(0x00F00000); // Clear PC13 bits (00F00000)
+    GPIOC_CRH |= (1 << 21);     // Output mode, max speed 2 MHz (0x2 << 20 = 0x00200000)
 
     uint32_t apsr;
     int32_t result;
