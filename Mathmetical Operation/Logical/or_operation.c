@@ -28,6 +28,7 @@ void blink(int times)
     {
         led_on();
         delay();
+
         led_off();
         delay();
     }
@@ -40,8 +41,8 @@ int main(void)
     RCC_APB2ENR |= (1 << 4);
 
     /* Configure PC13 as output */
-    GPIOC_CRH &= ~(0x00F00000);
-    GPIOC_CRH |= (1 << 21);
+    GPIOC_CRH &= ~(0x00F00000); // Clear PC13 bits (00F00000)
+    GPIOC_CRH |= (1 << 21);     // Output mode, max speed 2 MHz (0x2 << 20 = 0x00200000)
 
     uint32_t apsr;
     int32_t result;
@@ -53,14 +54,14 @@ int main(void)
     while (1)
     {
         __asm volatile(
-            "MOV R0, %1      \n"
-            "MOV R1, %2      \n"
-            "ORRS R2, R0, R1 \n"
-            "MOV %0, R2      \n"
-            "MRS %1, APSR    \n"
-            : "=r"(result), "=r"(apsr)
-            : "r"(a), "r"(b)
-            : "r0", "r1", "r2", "cc");
+            "MOV R0, %1      \n"       // Load a into R0
+            "MOV R1, %2      \n"       // Load b into R1
+            "ORRS R2, R0, R1 \n"       // R2 = R0 | R1, updates flags
+            "MOV %0, R2      \n"       // Store result back to C variable
+            "MRS %1, APSR    \n"       // Store APSR flags back to C variable
+            : "=r"(result), "=r"(apsr) // Output operands
+            : "r"(a), "r"(b)           // Input operands
+            : "r0", "r1", "r2", "cc"); // Clobbered registers and condition codes
 
         printf("OR: %d | %d = %ld\n", a, b, (long)result);
 

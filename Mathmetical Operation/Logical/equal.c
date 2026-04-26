@@ -28,6 +28,7 @@ void blink(int times)
     {
         led_on();
         delay();
+
         led_off();
         delay();
     }
@@ -40,8 +41,8 @@ int main(void)
     RCC_APB2ENR |= (1 << 4);
 
     /* Configure PC13 as output */
-    GPIOC_CRH &= ~(0x00F00000);
-    GPIOC_CRH |= (1 << 21);
+    GPIOC_CRH &= ~(0x00F00000); // Clear PC13 bits (00F00000)
+    GPIOC_CRH |= (1 << 21);     // Output mode, max speed 2 MHz (0x2 << 20 = 0x00200000)
 
     uint32_t apsr;
 
@@ -52,13 +53,13 @@ int main(void)
     while (1)
     {
         __asm volatile(
-            "MOV R0, %1   \n"
-            "MOV R1, %2   \n"
-            "CMP R0, R1   \n"
-            "MRS %0, APSR \n"
-            : "=r"(apsr)
-            : "r"(a), "r"(b)
-            : "cc");
+            "MOV R0, %1   \n"    // Load a into R0
+            "MOV R1, %2   \n"    // Load b into R1
+            "CMP R0, R1   \n"    // Compare R0 and R1, updates flags
+            "MRS %0, APSR \n"    // Store APSR flags back to C variable
+            : "=r"(apsr)         // Output operand
+            : "r"(a), "r"(b)     // Input operands
+            : "r0", "r1", "cc"); // Clobbered registers and condition codes
 
         printf("Compare: %d and %d\n", a, b);
         printf("APSR = 0x%08lX\n", (unsigned long)apsr);
